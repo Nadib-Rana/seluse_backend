@@ -1,0 +1,57 @@
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { ConfigService } from "@nestjs/config";
+import { PrismaService } from "../../database/prisma.service";
+import { UserStatus } from "@prisma/client";
+
+export interface JwtPayload {
+  sub: string;
+  email?: string;
+  phone: string;
+  role: string;
+}
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly prisma: PrismaService,
+  ) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: configService.get<string>(
+        "jwt.secret",
+        "super-secret-access-key-change-in-production-32chars",
+      ),
+    });
+  }
+
+  async validate(payload: JwtPayload) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        fullName: true,
+        avatarUrl: true,
+        role: true,
+        status: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException("User not found or token is invalid");
+    }
+
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException(
+        `Your account is currently ${user.status.toLowerCase()}. Please contact support.`,
+      );
+    }
+
+    return user;
+  }
+}
