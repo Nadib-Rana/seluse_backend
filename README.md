@@ -2,10 +2,11 @@
   <a href="https://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-<h1 align="center">NestJS Enterprise Starter Template</h1>
+<h1 align="center">Seluse (Drapé) E-Commerce Backend</h1>
 
 <p align="center">
-  A production-ready, scalable, and modular <b>NestJS + Prisma + PostgreSQL</b> starter template featuring JWT Authentication, Refresh Token Rotation, RBAC, MinIO/S3 Storage, Handlebars Mailer, Swagger OpenAPI, Docker Compose, and automated testing.
+  Production-ready <b>NestJS + Prisma + PostgreSQL</b> API for Seluse E-Commerce application.<br/>
+  📖 <b><a href="ARCHITECTURE_HANDOVER.md">Read the Complete Architecture & Handover Guide for Developers & AI Agents</a></b>
 </p>
 
 <p align="center">
