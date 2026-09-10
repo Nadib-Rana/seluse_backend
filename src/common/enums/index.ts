@@ -1,6 +1,6 @@
-import { Role, UserStatus, OtpType } from "@prisma/client";
+import { Role, UserStatus } from "@prisma/client";
 
-export { Role, UserStatus, OtpType };
+export { Role, UserStatus };
 
 export enum Environment {
   DEVELOPMENT = "development",

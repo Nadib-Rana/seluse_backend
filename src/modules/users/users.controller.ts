@@ -33,7 +33,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.STORE_MANAGER)
   @ApiOperation({ summary: "Get paginated users list with search & filters (Admin only)" })
   @ResponseMessage("Users retrieved successfully")
   async findAll(@Query() query: UserQueryDto) {
@@ -41,7 +41,7 @@ export class UsersController {
   }
 
   @Get(":id")
-  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.STORE_MANAGER)
   @ApiOperation({ summary: "Get user details by ID (Admin only)" })
   @ResponseMessage("User retrieved successfully")
   async findOne(@Param("id", ParseUUIDPipe) id: string) {
@@ -49,7 +49,7 @@ export class UsersController {
   }
 
   @Post()
-  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.STORE_MANAGER)
   @ApiOperation({ summary: "Create a new user account (Admin only)" })
   @ResponseMessage("User created successfully")
   async create(@Body() dto: CreateUserDto) {
@@ -67,7 +67,7 @@ export class UsersController {
   }
 
   @Patch(":id")
-  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.STORE_MANAGER)
   @ApiOperation({ summary: "Update user details or role/status (Admin only)" })
   @ResponseMessage("User updated successfully")
   async update(
