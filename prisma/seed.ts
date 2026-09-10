@@ -1,7 +1,15 @@
 import { PrismaClient, Role, UserStatus } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import * as bcrypt from "bcryptjs";
+import * as dotenv from "dotenv";
 
-const prisma = new PrismaClient();
+dotenv.config();
+
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgrespassword@localhost:5435/drape_db?schema=public";
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const mockProducts = [
   {
@@ -212,7 +220,6 @@ async function main() {
       where: { sku: p.sku },
       update: {},
       create: {
-        id: p.id,
         name: p.name,
         slug: p.sku.toLowerCase(),
         sku: p.sku,

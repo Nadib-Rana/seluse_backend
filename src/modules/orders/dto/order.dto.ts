@@ -72,6 +72,16 @@ export class OrderItemInputDto {
   @IsString()
   variantId?: string;
 
+  @ApiPropertyOptional({ example: "Oxford Slim Fit Shirt" })
+  @IsOptional()
+  @IsString()
+  productName?: string;
+
+  @ApiPropertyOptional({ example: 1890 })
+  @IsOptional()
+  @IsNumber()
+  unitPrice?: number;
+
   @ApiProperty({ example: "M" })
   @IsNotEmpty()
   @IsString()

@@ -133,16 +133,20 @@ export class AuthService {
     return {
       userId: user.id,
       verificationExpiresInSeconds: 300,
+      otpCode: otp,
       otpDebug: process.env.NODE_ENV !== "production" ? otp : undefined,
     };
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
-    const identifier = dto.phone?.trim() || dto.userId;
+    const otpCode = dto.code || dto.otp;
+    if (!otpCode) {
+      throw new BadRequestException("OTP code is required");
+    }
 
     const otpRecord = await this.prisma.otpToken.findFirst({
       where: {
-        code: dto.otp.trim(),
+        code: otpCode.trim(),
         isUsed: false,
         expiresAt: { gt: new Date() },
         OR: [
@@ -185,7 +189,7 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
-    const identifier = dto.identifier.trim();
+    const identifier = (dto.identifier || dto.phoneOrEmail || "").trim();
 
     const user = await this.prisma.user.findFirst({
       where: {

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Query,
   Param,
@@ -10,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { ProductsService } from "./products.service";
-import { ProductQueryDto, CreateProductDto } from "./dto/product.dto";
+import { ProductQueryDto, CreateProductDto, UpdateProductDto } from "./dto/product.dto";
 import { Public } from "../../common/decorators/public.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
@@ -47,6 +48,15 @@ export class ProductsController {
   @ResponseMessage("Product created successfully")
   async create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
+  }
+
+  @Roles(Role.STORE_MANAGER, Role.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @Patch(":id")
+  @ApiOperation({ summary: "Update existing product details (Admin)" })
+  @ResponseMessage("Product updated successfully")
+  async update(@Param("id") id: string, @Body() dto: UpdateProductDto) {
+    return this.productsService.update(id, dto);
   }
 
   @Roles(Role.STORE_MANAGER, Role.SUPER_ADMIN)

@@ -23,6 +23,7 @@ import {
   UpdateUserDto,
   UpdateProfileDto,
   UserQueryDto,
+  CreateAddressDto,
 } from "./dto/user.dto";
 
 @ApiTags("Users")
@@ -40,6 +41,43 @@ export class UsersController {
     return this.usersService.findAll(query);
   }
 
+  @Patch("profile")
+  @ApiOperation({ summary: "Update logged-in user profile" })
+  @ResponseMessage("Profile updated successfully")
+  async updateProfile(
+    @CurrentUser("id") userId: string,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.usersService.updateProfile(userId, dto);
+  }
+
+  @Get("addresses")
+  @ApiOperation({ summary: "Get saved delivery addresses for logged-in user" })
+  @ResponseMessage("Addresses retrieved successfully")
+  async getAddresses(@CurrentUser("id") userId: string) {
+    return this.usersService.getAddresses(userId);
+  }
+
+  @Post("addresses")
+  @ApiOperation({ summary: "Add a new delivery address for logged-in user" })
+  @ResponseMessage("Address added successfully")
+  async createAddress(
+    @CurrentUser("id") userId: string,
+    @Body() dto: CreateAddressDto,
+  ) {
+    return this.usersService.createAddress(userId, dto);
+  }
+
+  @Delete("addresses/:id")
+  @ApiOperation({ summary: "Delete a saved delivery address" })
+  @ResponseMessage("Address deleted successfully")
+  async deleteAddress(
+    @CurrentUser("id") userId: string,
+    @Param("id", ParseUUIDPipe) addressId: string,
+  ) {
+    return this.usersService.deleteAddress(userId, addressId);
+  }
+
   @Get(":id")
   @Roles(Role.SUPER_ADMIN, Role.STORE_MANAGER)
   @ApiOperation({ summary: "Get user details by ID (Admin only)" })
@@ -54,16 +92,6 @@ export class UsersController {
   @ResponseMessage("User created successfully")
   async create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
-  }
-
-  @Patch("profile")
-  @ApiOperation({ summary: "Update logged-in user profile" })
-  @ResponseMessage("Profile updated successfully")
-  async updateProfile(
-    @CurrentUser("id") userId: string,
-    @Body() dto: UpdateProfileDto,
-  ) {
-    return this.usersService.updateProfile(userId, dto);
   }
 
   @Patch(":id")

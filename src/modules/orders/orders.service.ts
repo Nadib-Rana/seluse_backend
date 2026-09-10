@@ -197,6 +197,7 @@ export class OrdersService {
       });
 
       return {
+        id: order.id,
         orderNumber: order.orderNumber,
         status: order.status,
         paymentStatus: order.paymentStatus,

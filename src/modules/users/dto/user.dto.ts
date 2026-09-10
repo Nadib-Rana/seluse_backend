@@ -97,3 +97,40 @@ export class UserQueryDto extends PaginationQueryDto {
   @IsEnum(UserStatus)
   status?: UserStatus;
 }
+
+export class CreateAddressDto {
+  @ApiProperty({ example: "Nadib Rana" })
+  @IsNotEmpty()
+  @IsString()
+  recipient: string;
+
+  @ApiProperty({ example: "+8801700000000" })
+  @IsNotEmpty()
+  @IsString()
+  phone: string;
+
+  @ApiProperty({ example: "Dhaka" })
+  @IsNotEmpty()
+  @IsString()
+  division: string;
+
+  @ApiProperty({ example: "Dhaka" })
+  @IsNotEmpty()
+  @IsString()
+  district: string;
+
+  @ApiProperty({ example: "Gulshan-2" })
+  @IsNotEmpty()
+  @IsString()
+  area: string;
+
+  @ApiProperty({ example: "House 12, Road 55" })
+  @IsNotEmpty()
+  @IsString()
+  addressLine: string;
+
+  @ApiPropertyOptional({ example: true, default: false })
+  @IsOptional()
+  isDefault?: boolean;
+}
+

@@ -29,6 +29,7 @@ import { OrdersModule } from "./modules/orders/orders.module";
 import { CouponsModule } from "./modules/coupons/coupons.module";
 import { CampaignsModule } from "./modules/campaigns/campaigns.module";
 import { AdminModule } from "./modules/admin/admin.module";
+import { WishlistModule } from "./modules/wishlist/wishlist.module";
 
 // App Core Controller & Service
 import { AppController } from "./app.controller";
@@ -71,6 +72,7 @@ import { AppService } from "./app.service";
     CouponsModule,
     CampaignsModule,
     AdminModule,
+    WishlistModule,
   ],
   controllers: [AppController],
   providers: [

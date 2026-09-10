@@ -12,6 +12,7 @@ import {
   UpdateUserDto,
   UpdateProfileDto,
   UserQueryDto,
+  CreateAddressDto,
 } from "./dto/user.dto";
 
 @Injectable()
@@ -146,5 +147,50 @@ export class UsersService {
     });
 
     return { message: "User suspended successfully" };
+  }
+
+  async getAddresses(userId: string) {
+    return this.prisma.address.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async createAddress(userId: string, dto: CreateAddressDto) {
+    if (dto.isDefault) {
+      await this.prisma.address.updateMany({
+        where: { userId },
+        data: { isDefault: false },
+      });
+    }
+
+    return this.prisma.address.create({
+      data: {
+        userId,
+        recipient: dto.recipient,
+        phone: dto.phone,
+        division: dto.division,
+        district: dto.district,
+        area: dto.area,
+        addressLine: dto.addressLine,
+        isDefault: dto.isDefault || false,
+      },
+    });
+  }
+
+  async deleteAddress(userId: string, addressId: string) {
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+
+    if (!address) {
+      throw new NotFoundException("Address not found");
+    }
+
+    await this.prisma.address.delete({
+      where: { id: addressId },
+    });
+
+    return { message: "Address deleted successfully" };
   }
 }

@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { PrismaService } from "../../database/prisma.service";
-import { ProductQueryDto, CreateProductDto } from "./dto/product.dto";
+import { ProductQueryDto, CreateProductDto, UpdateProductDto } from "./dto/product.dto";
 import { Prisma } from "@prisma/client";
 
 @Injectable()
@@ -243,6 +243,35 @@ export class ProductsService {
               })),
             }
           : undefined,
+      },
+      include: {
+        variants: true,
+      },
+    });
+  }
+
+  async update(id: string, dto: UpdateProductDto) {
+    const existing = await this.prisma.product.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException("Product not found");
+    }
+
+    return this.prisma.product.update({
+      where: { id },
+      data: {
+        ...(dto.name ? { name: dto.name } : {}),
+        ...(dto.slug ? { slug: dto.slug } : {}),
+        ...(dto.sku ? { sku: dto.sku } : {}),
+        ...(dto.categorySlug ? { categorySlug: dto.categorySlug } : {}),
+        ...(dto.categoryId ? { categoryId: dto.categoryId } : {}),
+        ...(dto.subcategory !== undefined ? { subcategory: dto.subcategory } : {}),
+        ...(dto.collection !== undefined ? { collection: dto.collection } : {}),
+        ...(dto.description ? { description: dto.description } : {}),
+        ...(dto.price !== undefined ? { price: dto.price } : {}),
+        ...(dto.originalPrice !== undefined ? { originalPrice: dto.originalPrice } : {}),
+        ...(dto.badge !== undefined ? { badge: dto.badge } : {}),
+        ...(dto.images ? { images: dto.images } : {}),
+        ...(dto.features ? { features: dto.features } : {}),
       },
       include: {
         variants: true,

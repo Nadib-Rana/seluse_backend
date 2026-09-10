@@ -34,13 +34,21 @@ export class RegisterDto {
 }
 
 export class LoginDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "+8801700000000",
     description: "Email or Phone number to login",
   })
-  @IsNotEmpty({ message: "Email or Phone is required" })
+  @IsOptional()
   @IsString()
-  identifier: string;
+  identifier?: string;
+
+  @ApiPropertyOptional({
+    example: "+8801700000000",
+    description: "Alias for identifier",
+  })
+  @IsOptional()
+  @IsString()
+  phoneOrEmail?: string;
 
   @ApiProperty({ example: "Password123!", description: "Account password" })
   @IsNotEmpty({ message: "Password is required" })
@@ -68,10 +76,15 @@ export class VerifyOtpDto {
   @IsString()
   phone?: string;
 
-  @ApiProperty({ example: "492018", description: "6-digit OTP code" })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: "492018", description: "6-digit OTP code" })
+  @IsOptional()
   @IsString()
-  otp: string;
+  otp?: string;
+
+  @ApiPropertyOptional({ example: "492018", description: "Alias for otp code" })
+  @IsOptional()
+  @IsString()
+  code?: string;
 }
 
 export class ResendOtpDto {

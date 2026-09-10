@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import {
   IsArray,
   IsBoolean,
@@ -165,3 +165,5 @@ export class CreateProductDto {
   @IsArray()
   variants?: CreateVariantDto[];
 }
+
+export class UpdateProductDto extends PartialType(CreateProductDto) {}
