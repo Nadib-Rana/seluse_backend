@@ -287,6 +287,94 @@ export class AuthService {
     return { message: "Logged out successfully" };
   }
 
+  async forgotPassword(identifier: string) {
+    const cleanId = identifier.trim();
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { phone: cleanId },
+          { email: cleanId.toLowerCase() },
+        ],
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("Account with this phone or email does not exist");
+    }
+
+    const otp = OtpUtil.generateNumericOtp(6);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await this.prisma.otpToken.create({
+      data: {
+        identifier: user.phone,
+        code: otp,
+        expiresAt,
+        userId: user.id,
+      },
+    });
+
+    this.logger.log(`[PASSWORD RESET OTP] Sent to ${user.phone}: ${otp}`);
+
+    if (user.email) {
+      void this.mailService.sendEmailVerificationOtp(user.email, user.fullName, otp);
+    }
+
+    return {
+      message: "Password reset OTP code sent",
+      phone: user.phone,
+      otpCode: process.env.NODE_ENV !== "production" ? otp : undefined,
+    };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const cleanId = dto.identifier.trim();
+    const otpCode = dto.otp.trim();
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { phone: cleanId },
+          { email: cleanId.toLowerCase() },
+        ],
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("User account not found");
+    }
+
+    const otpRecord = await this.prisma.otpToken.findFirst({
+      where: {
+        code: otpCode,
+        isUsed: false,
+        expiresAt: { gt: new Date() },
+        OR: [{ identifier: user.phone }, { userId: user.id }],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!otpRecord) {
+      throw new BadRequestException("Invalid or expired OTP code");
+    }
+
+    const hashedPassword = await HashUtil.hash(dto.newPassword);
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: hashedPassword },
+      }),
+      this.prisma.otpToken.update({
+        where: { id: otpRecord.id },
+        data: { isUsed: true },
+      }),
+    ]);
+
+    return { message: "Password reset successfully. You can now login with your new password." };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

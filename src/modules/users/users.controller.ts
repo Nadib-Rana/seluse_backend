@@ -24,6 +24,7 @@ import {
   UpdateProfileDto,
   UserQueryDto,
   CreateAddressDto,
+  ChangePasswordDto,
 } from "./dto/user.dto";
 
 @ApiTags("Users")
@@ -103,6 +104,16 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
   ) {
     return this.usersService.update(id, dto);
+  }
+
+  @Patch("me/password")
+  @ApiOperation({ summary: "Change logged-in user password" })
+  @ResponseMessage("Password changed successfully")
+  async changePassword(
+    @CurrentUser("id") userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.usersService.changePassword(userId, dto);
   }
 
   @Delete(":id")

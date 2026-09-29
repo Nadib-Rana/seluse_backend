@@ -30,6 +30,7 @@ import { CouponsModule } from "./modules/coupons/coupons.module";
 import { CampaignsModule } from "./modules/campaigns/campaigns.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { WishlistModule } from "./modules/wishlist/wishlist.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
 
 // App Core Controller & Service
 import { AppController } from "./app.controller";
@@ -73,6 +74,7 @@ import { AppService } from "./app.service";
     CampaignsModule,
     AdminModule,
     WishlistModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [

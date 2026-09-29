@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from "@nestjs/common";
 import { PrismaService } from "../../database/prisma.service";
 import { HashUtil } from "../../common/utils/hash.util";
@@ -13,6 +14,7 @@ import {
   UpdateProfileDto,
   UserQueryDto,
   CreateAddressDto,
+  ChangePasswordDto,
 } from "./dto/user.dto";
 
 @Injectable()
@@ -192,5 +194,22 @@ export class UsersService {
     });
 
     return { message: "Address deleted successfully" };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException("User not found");
+
+    const valid = await HashUtil.compare(dto.currentPassword, user.passwordHash);
+    if (!valid)
+      throw new BadRequestException("Current password is incorrect");
+
+    const hashed = await HashUtil.hash(dto.newPassword);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: hashed },
+    });
+
+    return { message: "Password changed successfully" };
   }
 }

@@ -14,7 +14,8 @@ import {
   ApiBearerAuth,
   ApiResponse,
 } from "@nestjs/swagger";
-import { Request } from "express";
+import { Request, Response } from "express";
+import { Res } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { Public } from "../../common/decorators/public.decorator";
@@ -25,6 +26,7 @@ import {
   LoginDto,
   RefreshTokenDto,
   VerifyOtpDto,
+  ResetPasswordDto,
 } from "./dto/auth.dto";
 
 @ApiTags("Authentication")
@@ -32,6 +34,18 @@ import {
 @UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  private setRefreshTokenCookie(res: Response, refreshToken?: string) {
+    if (!refreshToken) return;
+    const isProd = process.env.NODE_ENV === "production";
+    res.cookie("seluse_refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "lax",
+      path: "/api/v1/auth",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+  }
 
   @Public()
   @Post("register")
@@ -47,8 +61,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Verify registration OTP code" })
   @ResponseMessage("Account verified successfully.")
-  async verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto);
+  async verifyOtp(
+    @Body() dto: VerifyOtpDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verifyOtp(dto);
+    this.setRefreshTokenCookie(res, result.refreshToken);
+    return result;
   }
 
   @Public()
@@ -57,10 +76,16 @@ export class AuthController {
   @ApiOperation({ summary: "Login with phone/email and password" })
   @ApiResponse({ status: 200, description: "Login successful" })
   @ResponseMessage("Login successful.")
-  async login(@Body() dto: LoginDto, @Req() req: Request) {
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const ipAddress = req.ip || req.socket.remoteAddress;
     const userAgent = req.get("user-agent");
-    return this.authService.login(dto, ipAddress, userAgent);
+    const result = await this.authService.login(dto, ipAddress, userAgent);
+    this.setRefreshTokenCookie(res, result.refreshToken);
+    return result;
   }
 
   @Public()
@@ -68,9 +93,34 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Refresh access token using refresh token" })
   @ResponseMessage("Token refreshed successfully")
-  async refresh(@Body() dto: RefreshTokenDto, @Req() req: Request) {
+  async refresh(
+    @Body() dto: RefreshTokenDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const ipAddress = req.ip || req.socket.remoteAddress;
-    return this.authService.refreshToken(dto.refreshToken, ipAddress);
+    const token = dto?.refreshToken || req.cookies?.seluse_refresh_token;
+    const result = await this.authService.refreshToken(token, ipAddress);
+    this.setRefreshTokenCookie(res, result.refreshToken);
+    return result;
+  }
+
+  @Public()
+  @Post("forgot-password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Request password reset OTP code via phone or email" })
+  @ResponseMessage("Password reset OTP sent.")
+  async forgotPassword(@Body() dto: { identifier: string }) {
+    return this.authService.forgotPassword(dto.identifier);
+  }
+
+  @Public()
+  @Post("reset-password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Reset password using OTP verification code" })
+  @ResponseMessage("Password reset successfully.")
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 
   @ApiBearerAuth()
@@ -86,7 +136,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Logout and revoke active session" })
   @ResponseMessage("Logged out successfully")
-  async logout(@CurrentUser("id") userId: string) {
+  async logout(
+    @CurrentUser("id") userId: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    res.clearCookie("seluse_refresh_token", { path: "/api/v1/auth" });
     return this.authService.logout(userId);
   }
 }

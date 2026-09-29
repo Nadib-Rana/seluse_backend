@@ -134,3 +134,14 @@ export class CreateAddressDto {
   isDefault?: boolean;
 }
 
+export class ChangePasswordDto {
+  @ApiProperty({ example: "OldPassword123!" })
+  @IsString()
+  @MinLength(6)
+  currentPassword: string;
+
+  @ApiProperty({ example: "NewPassword456!", minLength: 6 })
+  @IsString()
+  @MinLength(6)
+  newPassword: string;
+}
