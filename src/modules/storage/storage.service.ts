@@ -47,6 +47,24 @@ export class StorageService implements OnModuleInit {
           await this.minioClient.makeBucket(this.defaultBucket, region);
           this.logger.log(`Created default storage bucket: ${this.defaultBucket}`);
         }
+
+        // Always ensure bucket policy is public read so images can be viewed in browser
+        const policy = {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Principal: { AWS: ["*"] },
+              Action: ["s3:GetObject"],
+              Resource: [`arn:aws:s3:::${this.defaultBucket}/*`],
+            },
+          ],
+        };
+        await this.minioClient.setBucketPolicy(
+          this.defaultBucket,
+          JSON.stringify(policy),
+        ).catch(e => this.logger.warn(`Failed to set bucket policy: ${e.message}`));
+
         this.logger.log("✅ Object storage (MinIO/S3) configured successfully");
       } catch (err) {
         this.logger.warn(
@@ -139,7 +157,9 @@ export class StorageService implements OnModuleInit {
   ): Promise<{ key: string; publicUrl: string }> {
     const b = bucket || this.defaultBucket;
     if (!this.minioClient) {
-      return { key, publicUrl: this.getObjectUrl(key, b) };
+      const base64 = buffer.toString("base64");
+      const mime = mimeType || "application/octet-stream";
+      return { key, publicUrl: `data:${mime};base64,${base64}` };
     }
 
     await this.minioClient.putObject(b, key, buffer, buffer.length, {

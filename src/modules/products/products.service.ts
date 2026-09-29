@@ -272,6 +272,20 @@ export class ProductsService {
         ...(dto.badge !== undefined ? { badge: dto.badge } : {}),
         ...(dto.images ? { images: dto.images } : {}),
         ...(dto.features ? { features: dto.features } : {}),
+        ...(dto.variants
+          ? {
+              variants: {
+                deleteMany: {},
+                create: dto.variants.map((v) => ({
+                  sku: v.sku,
+                  size: v.size,
+                  color: v.color,
+                  colorHex: v.colorHex,
+                  stock: v.stock,
+                })),
+              },
+            }
+          : {}),
       },
       include: {
         variants: true,

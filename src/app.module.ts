@@ -13,7 +13,7 @@ import { ContextModule } from "./common/context/context.module";
 // Middlewares, Filters & Interceptors
 import { RequestIdMiddleware } from "./common/middleware/request-id.middleware";
 import { ResponseStandardizationInterceptor } from "./common/interceptors/response-standardization.interceptor";
-import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
+
 import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { PrismaClientExceptionFilter } from "./common/filters/prisma-client-exception.filter";
 
@@ -83,10 +83,6 @@ import { AppService } from "./app.service";
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseStandardizationInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
     },
     {
       provide: APP_FILTER,
