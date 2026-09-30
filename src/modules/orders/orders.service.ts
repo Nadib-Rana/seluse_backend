@@ -46,7 +46,9 @@ export class OrdersService {
           variant = await tx.productVariant.findUnique({
             where: { id: item.variantId },
           });
-        } else {
+        }
+
+        if (!variant) {
           variant = await tx.productVariant.findFirst({
             where: {
               productId: item.productId,
