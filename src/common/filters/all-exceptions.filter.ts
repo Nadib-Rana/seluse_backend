@@ -47,6 +47,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode = exception.getStatus();
       const res = exception.getResponse() as any;
       message = typeof res === "string" ? res : res.message || message;
+      if (typeof res === "object") {
+        if (res.errorCode) errorCode = res.errorCode;
+        if (res.errors) errors = res.errors;
+      }
     } else if (exception instanceof Error) {
       message = exception.message;
       this.logger.error(`Unhandled exception: ${exception.message}`, exception.stack);
