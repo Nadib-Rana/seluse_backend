@@ -24,6 +24,7 @@ import {
   UpdateProfileDto,
   UserQueryDto,
   CreateAddressDto,
+  UpdateAddressDto,
   ChangePasswordDto,
 } from "./dto/user.dto";
 
@@ -67,6 +68,17 @@ export class UsersController {
     @Body() dto: CreateAddressDto,
   ) {
     return this.usersService.createAddress(userId, dto);
+  }
+
+  @Patch("addresses/:id")
+  @ApiOperation({ summary: "Update a saved delivery address" })
+  @ResponseMessage("Address updated successfully")
+  async updateAddress(
+    @CurrentUser("id") userId: string,
+    @Param("id", ParseUUIDPipe) addressId: string,
+    @Body() dto: UpdateAddressDto,
+  ) {
+    return this.usersService.updateAddress(userId, addressId, dto);
   }
 
   @Delete("addresses/:id")

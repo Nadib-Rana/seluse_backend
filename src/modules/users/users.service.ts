@@ -180,6 +180,28 @@ export class UsersService {
     });
   }
 
+  async updateAddress(userId: string, addressId: string, dto: any) {
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+
+    if (!address) {
+      throw new NotFoundException("Address not found");
+    }
+
+    if (dto.isDefault) {
+      await this.prisma.address.updateMany({
+        where: { userId, id: { not: addressId } },
+        data: { isDefault: false },
+      });
+    }
+
+    return this.prisma.address.update({
+      where: { id: addressId },
+      data: dto,
+    });
+  }
+
   async deleteAddress(userId: string, addressId: string) {
     const address = await this.prisma.address.findFirst({
       where: { id: addressId, userId },

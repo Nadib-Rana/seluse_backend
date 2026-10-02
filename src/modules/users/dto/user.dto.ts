@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import {
   IsEmail,
   IsEnum,
@@ -133,6 +133,8 @@ export class CreateAddressDto {
   @IsOptional()
   isDefault?: boolean;
 }
+
+export class UpdateAddressDto extends PartialType(CreateAddressDto) {}
 
 export class ChangePasswordDto {
   @ApiProperty({ example: "OldPassword123!" })
