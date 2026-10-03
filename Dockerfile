@@ -1,5 +1,5 @@
 # Build Stage
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install all dependencies
-RUN npm ci
+RUN npm install
 
 # Copy the rest of the application
 COPY . .
@@ -20,7 +20,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Production Stage
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (we need devDependencies for ts-node seeding)
-RUN npm ci
+RUN npm install
 
 # Copy Prisma schema and generate client
 COPY --from=builder /app/prisma ./prisma
