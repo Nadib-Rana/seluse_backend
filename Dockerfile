@@ -37,12 +37,12 @@ RUN npx prisma generate
 # Copy built application
 COPY --from=builder /app/dist ./dist
 
-# Set permissions
-USER node
-
 # Copy start script
 COPY start.sh ./
 RUN chmod +x start.sh
+
+# Set permissions
+USER node
 
 # Expose ports
 EXPOSE 3000
