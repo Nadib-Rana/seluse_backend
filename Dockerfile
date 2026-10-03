@@ -1,54 +1,48 @@
-# ==========================================
-# Stage 1: Build Image
-# ==========================================
-FROM node:22-alpine AS builder
+# Build Stage
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install openssl for Prisma
-RUN apk add --no-cache openssl
-
-# Copy dependency files
+# Copy package files
 COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install all dependencies
 RUN npm ci
 
-# Copy source files
+# Copy the rest of the application
 COPY . .
 
-# Dummy DATABASE_URL for Prisma generate build step
-ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/nest_starter_db?schema=public"
-
-# Generate Prisma Client and compile TypeScript
+# Generate Prisma Client
 RUN npx prisma generate
+
+# Build the application
 RUN npm run build
 
-# ==========================================
-# Stage 2: Production Runner Image
-# ==========================================
-FROM node:22-alpine AS runner
+# Production Stage
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Install runtime dependencies
-RUN apk add --no-cache openssl dumb-init
+# Copy package files
+COPY package*.json ./
 
-ENV NODE_ENV=production
-ENV PORT=3000
+# Install only production dependencies
+RUN npm ci --omit=dev
 
-# Create non-root user
+# Copy Prisma schema and generate client
+COPY --from=builder /app/prisma ./prisma
+RUN npx prisma generate
+
+# Copy built application
+COPY --from=builder /app/dist ./dist
+
+# Set permissions
 USER node
 
-# Copy build artifacts and dependencies
-COPY --chown=node:node --from=builder /app/package*.json ./
-COPY --chown=node:node --from=builder /app/node_modules ./node_modules
-COPY --chown=node:node --from=builder /app/dist ./dist
-COPY --chown=node:node --from=builder /app/prisma ./prisma
-COPY --chown=node:node --from=builder /app/templates ./templates
-
+# Expose ports
 EXPOSE 3000
+EXPOSE 8443
 
-# Run migrations and start app
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+# Start the application
+CMD ["npm", "run", "start:prod"]
