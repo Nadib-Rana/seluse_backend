@@ -3,6 +3,7 @@ import {
   Get,
   Patch,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -113,7 +114,16 @@ export class AdminController {
   async getVisitorLogs(
     @Query("page") page = 1,
     @Query("limit") limit = 20,
+    @Query("search") search?: string,
   ) {
-    return this.adminService.getVisitorLogs(Number(page), Number(limit));
+    return this.adminService.getVisitorLogs(Number(page), Number(limit), search);
+  }
+
+  @Roles(Role.SUPER_ADMIN)
+  @Delete("analytics/visitors/clear")
+  @ApiOperation({ summary: "Clear all website visitor logs" })
+  @ResponseMessage("Visitor logs cleared successfully")
+  async clearVisitorLogs() {
+    return this.adminService.clearVisitorLogs();
   }
 }

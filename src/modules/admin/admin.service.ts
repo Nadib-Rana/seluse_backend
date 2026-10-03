@@ -235,16 +235,30 @@ export class AdminService {
   }
 
   // ── Visitor Logs ──
-  async getVisitorLogs(page = 1, limit = 20) {
+  async getVisitorLogs(page = 1, limit = 20, search?: string) {
     const skip = (page - 1) * limit;
+    
+    let whereClause = {};
+    if (search) {
+      whereClause = {
+        OR: [
+          { ip: { contains: search, mode: "insensitive" } },
+          { path: { contains: search, mode: "insensitive" } },
+          { browser: { contains: search, mode: "insensitive" } },
+          { os: { contains: search, mode: "insensitive" } },
+          { device: { contains: search, mode: "insensitive" } },
+        ],
+      };
+    }
 
     const [logs, total] = await Promise.all([
       this.prisma.visitorLog.findMany({
+        where: whereClause,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
       }),
-      this.prisma.visitorLog.count(),
+      this.prisma.visitorLog.count({ where: whereClause }),
     ]);
 
     return {
@@ -256,5 +270,10 @@ export class AdminService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async clearVisitorLogs() {
+    await this.prisma.visitorLog.deleteMany({});
+    return { success: true };
   }
 }

@@ -29,7 +29,11 @@ export class AppController {
     const settings = await this.prisma.setting.findMany({
       where: {
         key: {
-          in: ["storeName", "gaMeasurementId", "currency", "metaTitle", "metaDesc"],
+          in: [
+            "storeName", "gaMeasurementId", "currency", "metaTitle", "metaDesc",
+            "bkashActive", "nagadActive", "rocketActive", "cardActive", "codActive",
+            "bkashMerchant", "nagadMerchant", "rocketMerchant"
+          ],
         },
       },
     });
