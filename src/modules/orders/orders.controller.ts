@@ -17,7 +17,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
-import { Role } from "@prisma/client";
+import { Role, OrderStatus } from "@prisma/client";
 import { ResponseMessage } from "../../common/decorators/response-message.decorator";
 
 @ApiTags("Checkout & Order Lifecycle")
@@ -51,5 +51,26 @@ export class OrdersController {
   @ResponseMessage("Customer order history loaded.")
   async getMyOrders(@CurrentUser("id") userId: string) {
     return this.ordersService.findMyOrders(userId);
+  }
+
+  @Roles(Role.SUPER_ADMIN, Role.STORE_MANAGER)
+  @ApiBearerAuth()
+  @Get("admin/all")
+  @ApiOperation({ summary: "Get all orders for admin panel" })
+  @ResponseMessage("All orders loaded.")
+  async getAllOrders() {
+    return this.ordersService.findAllOrders();
+  }
+
+  @Roles(Role.SUPER_ADMIN, Role.STORE_MANAGER)
+  @ApiBearerAuth()
+  @Post("admin/update-status/:id")
+  @ApiOperation({ summary: "Update order status (Admin)" })
+  @ResponseMessage("Order status updated.")
+  async updateOrderStatus(
+    @Param("id") id: string,
+    @Body() body: { status: OrderStatus; courier?: string; trackingNumber?: string }
+  ) {
+    return this.ordersService.updateOrderStatus(id, body.status, body.courier, body.trackingNumber);
   }
 }

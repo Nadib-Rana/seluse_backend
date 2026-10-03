@@ -280,4 +280,54 @@ export class OrdersService {
       items: o.items,
     }));
   }
+
+  async findAllOrders() {
+    const orders = await this.prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        items: true,
+      },
+    });
+
+    return orders.map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      customer: o.customerName,
+      phone: o.customerPhone,
+      items: o.items.reduce((acc, curr) => acc + curr.quantity, 0),
+      amount: Number(o.totalAmount),
+      payment: o.paymentMethod,
+      transactionId: o.transactionId,
+      senderNumber: o.senderNumber,
+      status: o.status,
+      courier: o.courierProvider || "—",
+      date: o.createdAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+    }));
+  }
+
+  async updateOrderStatus(id: string, status: OrderStatus, courier?: string, trackingNumber?: string) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException("Order not found");
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.order.update({
+        where: { id },
+        data: { 
+          status,
+          ...(courier ? { courierProvider: courier } : {}),
+          ...(trackingNumber ? { trackingNumber } : {})
+        },
+      });
+
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: id,
+          status,
+          note: `Status updated by Admin to ${status}`,
+        },
+      });
+
+      return updated;
+    });
+  }
 }
