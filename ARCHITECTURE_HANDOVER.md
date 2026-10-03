@@ -1,21 +1,21 @@
-# Seluse Backend Architecture & Agent Handover Guide
+# Selusbd Backend Architecture & Agent Handover Guide
 
 > **Target Audience**: AI Agents (Gemini/Antigravity, Claude, ChatGPT, etc.) & Software Engineers  
-> **Repository**: `seluse_backend`  
+> **Repository**: `selusbd_backend`  
 > **Framework**: NestJS (v11) + Prisma ORM (v7) + PostgreSQL + TypeScript  
 
 ---
 
 ## 1. Executive Overview & System Topology
 
-This repository powers the backend API for **Seluse (Drapé)**, an e-commerce platform for apparel and merchandise. 
+This repository powers the backend API for **Selusbd (Drapé)**, an e-commerce platform for apparel and merchandise. 
 
 ```
- [ React Frontend (seluse) ]
+ [ React Frontend (selusbd) ]
               │
               │ (HTTPS / REST API - /api/v1)
               ▼
-  [ NestJS Application (seluse_backend) ]
+  [ NestJS Application (selusbd_backend) ]
   ├── Presentation Layer: Controllers, JwtAuthGuard, RolesGuard, ValidationPipe
   ├── Core Layer: ResponseStandardizationInterceptor, AllExceptionsFilter
   ├── Logic Layer: AuthService, ProductsService, OrdersService, AdminService
@@ -34,7 +34,7 @@ This repository powers the backend API for **Seluse (Drapé)**, an e-commerce pl
 ## 2. Repository File Structure & Module Map
 
 ```
-seluse_backend/
+selusbd_backend/
 ├── prisma/
 │   ├── schema.prisma       # Master database schema definition
 │   └── seed.ts             # Automated database seeder (Admins, Products, Coupons)
@@ -64,7 +64,7 @@ seluse_backend/
 
 ## 3. Database Schema Overview & Enums
 
-Defined in [`prisma/schema.prisma`](file:///home/nadib-rana/Desktop/project/Gisan/seluse_backend/prisma/schema.prisma):
+Defined in [`prisma/schema.prisma`](file:///home/nadib-rana/Desktop/project/Gisan/selusbd_backend/prisma/schema.prisma):
 
 ### Enums
 - **`Role`**: `SUPER_ADMIN`, `STORE_MANAGER`, `CUSTOMER_SERVICE`, `CUSTOMER`

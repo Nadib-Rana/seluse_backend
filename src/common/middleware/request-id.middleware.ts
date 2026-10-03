@@ -40,7 +40,7 @@ export class RequestIdMiddleware implements NestMiddleware {
       
       const levelStr = statusCode >= 500 ? `${red}[ERROR]${reset}` : statusCode >= 400 ? `${yellow}[WARN]${reset}` : `${green}[INFO]${reset}`;
       
-      const serviceStr = `${magenta}[seluse-api]${reset}`;
+      const serviceStr = `${magenta}[selusbd-api]${reset}`;
 
       let methodColor = reset;
       if (method === "GET") methodColor = cyan;

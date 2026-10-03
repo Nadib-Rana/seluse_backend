@@ -1,18 +1,18 @@
-# Seluse (Drapé) E-Commerce — Exhaustive Master Implementation Roadmap
+# Selusbd (Drapé) E-Commerce — Exhaustive Master Implementation Roadmap
 
 > **Document Version**: 2.0 (Exhaustive & Uncompromising Checklist)  
-> **Scope**: Covers 100% of features, database models, backend API endpoints, state machines, frontend page integrations, payment gateways, admin panel screens, security hardening, and production deployment steps for the **Seluse** E-Commerce Ecosystem.
+> **Scope**: Covers 100% of features, database models, backend API endpoints, state machines, frontend page integrations, payment gateways, admin panel screens, security hardening, and production deployment steps for the **Selusbd** E-Commerce Ecosystem.
 
 ---
 
 ## 🧭 Master Architecture Overview
 
 ```
- [ React Frontend (seluse) ] 
+ [ React Frontend (selusbd) ] 
        │ 
        │ (REST API / Bearer Token / HTTP Cookies)
        ▼
- [ NestJS API Gateway & Application (seluse_backend) ]
+ [ NestJS API Gateway & Application (selusbd_backend) ]
  ├── Global Infrastructure: RequestIdMiddleware, ThrottlerGuard, ResponseStandardizationInterceptor, AllExceptionsFilter
  ├── Domain Modules: AuthModule, UsersModule, CategoriesModule, ProductsModule, OrdersModule, CouponsModule, CampaignsModule, AdminModule, StorageModule, MailModule
  └── Data Access: PrismaService ──► [ PostgreSQL 16 ] & [ Redis 7 Cache ]
@@ -75,7 +75,7 @@
   - [ ] `PUT /api/v1/users/addresses/:id/default` — Set primary default address.
   - [ ] `DELETE /api/v1/users/addresses/:id` — Remove address.
 
-### 2.2 Frontend Integration (`seluse/src`)
+### 2.2 Frontend Integration (`selusbd/src`)
 - [ ] Create Central API Client (`src/api/client.ts`) with `baseURL: http://localhost:8443/api/v1`.
 - [ ] Add Axios request interceptor to inject `Authorization: Bearer <accessToken>` from `localStorage` or `sessionStorage`.
 - [ ] Add Axios response interceptor for automatic token refresh on `401 Unauthorized`.
@@ -97,7 +97,7 @@
 - [x] **`POST /api/v1/products`** (Admin: `STORE_MANAGER`, `SUPER_ADMIN`): Create new product with nested variants array.
 - [x] **`DELETE /api/v1/products/:id`** (Admin): Soft-delete / deactivate product.
 
-### 3.2 Frontend Integration (`seluse/src/pages/Shop.tsx` & `ProductDetail.tsx`)
+### 3.2 Frontend Integration (`selusbd/src/pages/Shop.tsx` & `ProductDetail.tsx`)
 - [ ] Replace mock products array in `Shop.tsx` with live `GET /api/v1/products` API call.
 - [ ] Connect dynamic Category & Subcategory sidebar filter links.
 - [ ] Connect Price Range slider (`priceMin`, `priceMax`) to API query.
@@ -124,7 +124,7 @@
   - [ ] `POST /api/v1/wishlist/:productId` — Toggle / save product to wishlist.
   - [ ] `DELETE /api/v1/wishlist/:productId` — Remove product from wishlist.
 
-### 4.2 Frontend Integration (`seluse/src/context`)
+### 4.2 Frontend Integration (`selusbd/src/context`)
 - [ ] Sync `CartContext` state with persistent local storage or user account.
 - [ ] Implement Coupon Code input box on Cart Drawer & Checkout Page.
 - [ ] Call `POST /api/v1/coupons/validate` on apply coupon button click and update discount line item in subtotal summary.
@@ -150,7 +150,7 @@
 - [x] **`GET /api/v1/orders/track/:identifier`**: Public order tracking by `orderNumber` or customer `phone`. Returns courier provider (e.g. Steadfast Courier), tracking number, order items, and status timeline history.
 - [x] **`GET /api/v1/orders/my-orders`**: List authenticated customer order history.
 
-### 5.2 Frontend Checkout Integration (`seluse/src/pages/Checkout.tsx` & `TrackOrder.tsx`)
+### 5.2 Frontend Checkout Integration (`selusbd/src/pages/Checkout.tsx` & `TrackOrder.tsx`)
 - [ ] Build multi-step or single-page Checkout Form in `Checkout.tsx`.
 - [ ] Populate shipping address form with default user address if logged in.
 - [ ] Submit order payload to `POST /api/v1/orders`.
@@ -169,8 +169,8 @@
 
 ### 6.2 SMS Gateway Integration
 - [ ] Configure SMS Gateway Provider (e.g., MIM SMS / Greenweb / Twilio) credentials in `.env`.
-- [ ] Dispatch SMS on user registration OTP: *"Your Seluse verification code is: 492018. Valid for 5 minutes."*
-- [ ] Dispatch SMS post order placement: *"Thank you for your order #DRP-84920. Total: ৳5,210. Track at seluse.com/track"*
+- [ ] Dispatch SMS on user registration OTP: *"Your Selusbd verification code is: 492018. Valid for 5 minutes."*
+- [ ] Dispatch SMS post order placement: *"Thank you for your order #DRP-84920. Total: ৳5,210. Track at selusbd.com/track"*
 - [ ] Dispatch SMS on order shipment: *"Your order #DRP-84920 has been shipped via Steadfast Courier. Tracking No: STDF-994012."*
 
 ### 6.3 Email Notifications (`MailModule`)
@@ -209,7 +209,7 @@
 - [x] Global Rate Limiting via `@nestjs/throttler` (5 req/min on Auth, 100 req/min on Public API).
 - [x] Input sanitization via NestJS `ValidationPipe` (`whitelist: true`, `forbidNonWhitelisted: true`).
 - [x] Standardized success response envelope (`ResponseStandardizationInterceptor`) & error response format (`AllExceptionsFilter`).
-- [ ] CORS origin whitelist restricted strictly to trusted domain (`https://seluse.com`).
+- [ ] CORS origin whitelist restricted strictly to trusted domain (`https://selusbd.com`).
 
 ### 8.2 Redis Caching & Queue Optimization
 - [ ] Enable Redis cache for high-frequency product catalog GET requests (`GET /api/v1/products`).
