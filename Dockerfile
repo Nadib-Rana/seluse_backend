@@ -27,8 +27,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --omit=dev
+# Install all dependencies (we need devDependencies for ts-node seeding)
+RUN npm ci
 
 # Copy Prisma schema and generate client
 COPY --from=builder /app/prisma ./prisma
