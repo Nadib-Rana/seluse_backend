@@ -167,6 +167,8 @@ export class OrdersService {
           status: OrderStatus.PENDING,
           paymentStatus: PaymentStatus.PENDING,
           paymentMethod: dto.paymentMethod || "COD",
+          transactionId: dto.transactionId || null,
+          senderNumber: dto.senderNumber || null,
           subtotal,
           shippingFee,
           discountAmount,

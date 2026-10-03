@@ -125,4 +125,14 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   couponCode?: string;
+
+  @ApiPropertyOptional({ example: "TRX123456" })
+  @IsOptional()
+  @IsString()
+  transactionId?: string;
+
+  @ApiPropertyOptional({ example: "01700000000" })
+  @IsOptional()
+  @IsString()
+  senderNumber?: string;
 }
