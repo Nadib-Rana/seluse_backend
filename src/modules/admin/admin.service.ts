@@ -189,18 +189,47 @@ export class AdminService {
   }
 
   async getReportsSummary() {
-    const [totalOrders, pendingOrders, completedOrders, aggregateRevenue, totalProducts, totalCustomers] =
-      await Promise.all([
-        this.prisma.order.count(),
-        this.prisma.order.count({ where: { status: OrderStatus.PENDING } }),
-        this.prisma.order.count({ where: { status: OrderStatus.DELIVERED } }),
-        this.prisma.order.aggregate({
-          _sum: { totalAmount: true },
-          where: { paymentStatus: "PAID" },
-        }),
-        this.prisma.product.count({ where: { isActive: true } }),
-        this.prisma.user.count({ where: { role: "CUSTOMER" } }),
-      ]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [
+      totalOrders,
+      pendingOrders,
+      completedOrders,
+      aggregateRevenue,
+      totalProducts,
+      totalCustomers,
+      todayRevenueAgg,
+      lowStockCount,
+      recentOrdersList
+    ] = await Promise.all([
+      this.prisma.order.count(),
+      this.prisma.order.count({ where: { status: OrderStatus.PENDING } }),
+      this.prisma.order.count({ where: { status: OrderStatus.DELIVERED } }),
+      this.prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { paymentStatus: "PAID" },
+      }),
+      this.prisma.product.count({ where: { isActive: true } }),
+      this.prisma.user.count({ where: { role: "CUSTOMER" } }),
+      this.prisma.order.aggregate({
+        _sum: { totalAmount: true },
+        where: { paymentStatus: "PAID", createdAt: { gte: today } },
+      }),
+      this.prisma.productVariant.count({ where: { stock: { lt: 10 } } }),
+      this.prisma.order.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          orderNumber: true,
+          customerName: true,
+          totalAmount: true,
+          status: true,
+          createdAt: true,
+        }
+      }),
+    ]);
 
     return {
       totalOrders,
@@ -209,6 +238,9 @@ export class AdminService {
       totalRevenue: Number(aggregateRevenue._sum.totalAmount || 0),
       totalProducts,
       totalCustomers,
+      todayRevenue: Number(todayRevenueAgg._sum.totalAmount || 0),
+      lowStock: lowStockCount,
+      recentOrders: recentOrdersList,
     };
   }
 
