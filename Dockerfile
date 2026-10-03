@@ -40,9 +40,13 @@ COPY --from=builder /app/dist ./dist
 # Set permissions
 USER node
 
+# Copy start script
+COPY start.sh ./
+RUN chmod +x start.sh
+
 # Expose ports
 EXPOSE 3000
 EXPOSE 8443
 
-# Start the application
-CMD ["npm", "run", "start:prod"]
+# Start the application with migrations
+CMD ["./start.sh"]
