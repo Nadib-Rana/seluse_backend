@@ -89,4 +89,31 @@ export class AdminController {
   async getReportsSummary() {
     return this.adminService.getReportsSummary();
   }
+
+  @Roles(Role.STORE_MANAGER, Role.SUPER_ADMIN)
+  @Get("settings")
+  @ApiOperation({ summary: "Get global store settings" })
+  @ResponseMessage("Settings loaded")
+  async getSettings() {
+    return this.adminService.getSettings();
+  }
+
+  @Roles(Role.SUPER_ADMIN)
+  @Patch("settings")
+  @ApiOperation({ summary: "Update global store settings" })
+  @ResponseMessage("Settings updated successfully")
+  async updateSettings(@Body() dto: Record<string, any>) {
+    return this.adminService.updateSettings(dto);
+  }
+
+  @Roles(Role.STORE_MANAGER, Role.SUPER_ADMIN)
+  @Get("analytics/visitors")
+  @ApiOperation({ summary: "Get website visitor logs" })
+  @ResponseMessage("Visitor logs loaded")
+  async getVisitorLogs(
+    @Query("page") page = 1,
+    @Query("limit") limit = 20,
+  ) {
+    return this.adminService.getVisitorLogs(Number(page), Number(limit));
+  }
 }

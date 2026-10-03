@@ -31,6 +31,9 @@ export class UsersService {
     status: true,
     createdAt: true,
     updatedAt: true,
+    _count: {
+      select: { orders: true },
+    },
   };
 
   async findAll(query: UserQueryDto) {

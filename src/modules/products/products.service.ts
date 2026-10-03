@@ -129,6 +129,14 @@ export class ProductsService {
         stock: totalStock,
         description: p.description,
         features: p.features,
+        variants: p.variants.map((v) => ({
+          id: v.id,
+          sku: v.sku,
+          size: v.size,
+          color: v.color,
+          colorHex: v.colorHex,
+          stock: v.stock,
+        })),
       };
     });
 

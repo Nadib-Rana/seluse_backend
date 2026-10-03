@@ -211,4 +211,50 @@ export class AdminService {
       totalCustomers,
     };
   }
+
+  // ── Settings ──
+  async getSettings() {
+    const settings = await this.prisma.setting.findMany();
+    return settings.reduce((acc, s) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {} as Record<string, any>);
+  }
+
+  async updateSettings(data: Record<string, any>) {
+    const updates = Object.entries(data).map(([key, value]) => {
+      return this.prisma.setting.upsert({
+        where: { key },
+        update: { value: value ?? null },
+        create: { key, value: value ?? null },
+      });
+    });
+    
+    await this.prisma.$transaction(updates);
+    return this.getSettings();
+  }
+
+  // ── Visitor Logs ──
+  async getVisitorLogs(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await Promise.all([
+      this.prisma.visitorLog.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      this.prisma.visitorLog.count(),
+    ]);
+
+    return {
+      logs,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 }
