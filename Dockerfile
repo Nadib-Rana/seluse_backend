@@ -6,6 +6,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
 # Install all dependencies
 RUN npm install
@@ -32,6 +33,7 @@ RUN npm install
 
 # Copy Prisma schema and generate client
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
 RUN npx prisma generate
 
 # Copy built application

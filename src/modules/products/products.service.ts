@@ -283,13 +283,21 @@ export class ProductsService {
         ...(dto.variants
           ? {
               variants: {
-                deleteMany: {},
-                create: dto.variants.map((v) => ({
-                  sku: v.sku,
-                  size: v.size,
-                  color: v.color,
-                  colorHex: v.colorHex,
-                  stock: v.stock,
+                upsert: dto.variants.map((v) => ({
+                  where: { sku: v.sku },
+                  update: {
+                    size: v.size,
+                    color: v.color,
+                    colorHex: v.colorHex,
+                    stock: v.stock,
+                  },
+                  create: {
+                    sku: v.sku,
+                    size: v.size,
+                    color: v.color,
+                    colorHex: v.colorHex,
+                    stock: v.stock,
+                  },
                 })),
               },
             }
