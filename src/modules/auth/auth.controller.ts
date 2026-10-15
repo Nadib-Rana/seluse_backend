@@ -38,7 +38,7 @@ export class AuthController {
   private setRefreshTokenCookie(res: Response, refreshToken?: string) {
     if (!refreshToken) return;
     const isProd = process.env.NODE_ENV === "production";
-    res.cookie("selusbd_refresh_token", refreshToken, {
+    res.cookie("selus_refresh_token", refreshToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: "lax",
@@ -99,7 +99,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const ipAddress = req.ip || req.socket.remoteAddress;
-    const token = dto?.refreshToken || req.cookies?.selusbd_refresh_token;
+    const token = dto?.refreshToken || req.cookies?.selus_refresh_token || req.cookies?.selusbd_refresh_token;
     const result = await this.authService.refreshToken(token, ipAddress);
     this.setRefreshTokenCookie(res, result.refreshToken);
     return result;
@@ -140,6 +140,7 @@ export class AuthController {
     @CurrentUser("id") userId: string,
     @Res({ passthrough: true }) res: Response,
   ) {
+    res.clearCookie("selus_refresh_token", { path: "/api/v1/auth" });
     res.clearCookie("selusbd_refresh_token", { path: "/api/v1/auth" });
     return this.authService.logout(userId);
   }

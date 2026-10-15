@@ -117,7 +117,7 @@ const mockProducts = [
 ];
 
 async function main() {
-  console.log("🌱 Seeding Selusbd database...");
+  console.log("🌱 Seeding Selus database...");
 
   const defaultPassword = await bcrypt.hash("Password123!", 10);
 
