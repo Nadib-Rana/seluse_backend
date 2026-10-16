@@ -259,53 +259,126 @@ export class ProductsService {
   }
 
   async update(id: string, dto: UpdateProductDto) {
-    const existing = await this.prisma.product.findUnique({ where: { id } });
+    const existing = await this.prisma.product.findUnique({
+      where: { id },
+      include: { variants: true },
+    });
     if (!existing) {
       throw new NotFoundException("Product not found");
     }
 
-    return this.prisma.product.update({
-      where: { id },
-      data: {
-        ...(dto.name ? { name: dto.name } : {}),
-        ...(dto.slug ? { slug: dto.slug } : {}),
-        ...(dto.sku ? { sku: dto.sku } : {}),
-        ...(dto.categorySlug ? { categorySlug: dto.categorySlug } : {}),
-        ...(dto.categoryId ? { categoryId: dto.categoryId } : {}),
-        ...(dto.subcategory !== undefined ? { subcategory: dto.subcategory } : {}),
-        ...(dto.collection !== undefined ? { collection: dto.collection } : {}),
-        ...(dto.description ? { description: dto.description } : {}),
-        ...(dto.price !== undefined ? { price: dto.price } : {}),
-        ...(dto.originalPrice !== undefined ? { originalPrice: dto.originalPrice } : {}),
-        ...(dto.badge !== undefined ? { badge: dto.badge } : {}),
-        ...(dto.images ? { images: dto.images } : {}),
-        ...(dto.features ? { features: dto.features } : {}),
-        ...(dto.variants
-          ? {
-              variants: {
-                upsert: dto.variants.map((v) => ({
-                  where: { sku: v.sku },
-                  update: {
-                    size: v.size,
-                    color: v.color,
-                    colorHex: v.colorHex,
-                    stock: v.stock,
-                  },
-                  create: {
-                    sku: v.sku,
-                    size: v.size,
-                    color: v.color,
-                    colorHex: v.colorHex,
-                    stock: v.stock,
-                  },
-                })),
+    if (dto.slug && dto.slug !== existing.slug) {
+      const slugExists = await this.prisma.product.findUnique({ where: { slug: dto.slug } });
+      if (slugExists) {
+        throw new ConflictException("Product with this slug already exists");
+      }
+    }
+
+    if (dto.sku && dto.sku !== existing.sku) {
+      const skuExists = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+      if (skuExists) {
+        throw new ConflictException("Product with this SKU already exists");
+      }
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Update product base fields
+      await tx.product.update({
+        where: { id },
+        data: {
+          ...(dto.name ? { name: dto.name } : {}),
+          ...(dto.slug ? { slug: dto.slug } : {}),
+          ...(dto.sku ? { sku: dto.sku } : {}),
+          ...(dto.categorySlug ? { categorySlug: dto.categorySlug } : {}),
+          ...(dto.categoryId ? { categoryId: dto.categoryId } : {}),
+          ...(dto.subcategory !== undefined ? { subcategory: dto.subcategory } : {}),
+          ...(dto.collection !== undefined ? { collection: dto.collection } : {}),
+          ...(dto.description ? { description: dto.description } : {}),
+          ...(dto.price !== undefined ? { price: dto.price } : {}),
+          ...(dto.originalPrice !== undefined ? { originalPrice: dto.originalPrice } : {}),
+          ...(dto.badge !== undefined ? { badge: dto.badge } : {}),
+          ...(dto.images ? { images: dto.images } : {}),
+          ...(dto.features ? { features: dto.features } : {}),
+        },
+      });
+
+      // 2. Safely synchronize variants if provided
+      if (dto.variants && Array.isArray(dto.variants)) {
+        // Deduplicate incoming variants by (size, color)
+        const seen = new Set<string>();
+        const uniqueVariants: typeof dto.variants = [];
+        for (const v of dto.variants) {
+          const key = `${v.size.trim().toLowerCase()}_${v.color.trim().toLowerCase()}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueVariants.push(v);
+          }
+        }
+
+        const existingVariants = await tx.productVariant.findMany({
+          where: { productId: id },
+        });
+
+        const incomingKeys = new Set(
+          uniqueVariants.map((v) => `${v.size.trim().toLowerCase()}_${v.color.trim().toLowerCase()}`)
+        );
+
+        // Delete or zero-out variants that are no longer in the updated product
+        const toDelete = existingVariants.filter(
+          (ev) => !incomingKeys.has(`${ev.size.trim().toLowerCase()}_${ev.color.trim().toLowerCase()}`)
+        );
+
+        for (const delVar of toDelete) {
+          const hasOrders = await tx.orderItem.count({ where: { variantId: delVar.id } });
+          if (hasOrders === 0) {
+            await tx.productVariant.delete({ where: { id: delVar.id } });
+          } else {
+            await tx.productVariant.update({ where: { id: delVar.id }, data: { stock: 0 } });
+          }
+        }
+
+        // Upsert matching variants or create new ones
+        for (const v of uniqueVariants) {
+          const matched = existingVariants.find(
+            (ev) =>
+              ev.size.trim().toLowerCase() === v.size.trim().toLowerCase() &&
+              ev.color.trim().toLowerCase() === v.color.trim().toLowerCase()
+          );
+
+          if (matched) {
+            await tx.productVariant.update({
+              where: { id: matched.id },
+              data: {
+                sku: v.sku,
+                colorHex: v.colorHex,
+                stock: v.stock,
               },
+            });
+          } else {
+            let variantSku = v.sku;
+            const skuConflict = await tx.productVariant.findUnique({ where: { sku: variantSku } });
+            if (skuConflict && skuConflict.productId !== id) {
+              variantSku = `${variantSku}-${Date.now().toString().slice(-4)}`;
             }
-          : {}),
-      },
-      include: {
-        variants: true,
-      },
+
+            await tx.productVariant.create({
+              data: {
+                productId: id,
+                sku: variantSku,
+                size: v.size,
+                color: v.color,
+                colorHex: v.colorHex,
+                stock: v.stock,
+              },
+            });
+          }
+        }
+      }
+
+      return tx.product.findUnique({
+        where: { id },
+        include: { variants: true },
+      });
     });
   }
 
